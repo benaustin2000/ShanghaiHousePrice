@@ -26,66 +26,75 @@ HouseLocMinor=[]
 HouseBuildYear=[]
 LinkUrl=[]
 domain='http://sh.lianjia.com'#为了之后拼接子域名爬取详细信息
-#res=requests.get('http://sh.lianjia.com/ershoufang/d1',headers=headers1)#爬取拼接域名
-#time.sleep(random.randint(0.5, 1))
-#soup = BeautifulSoup(res.text,'html.parser')#使用html筛选器
+#'http://sh.lianjia.com/ershoufang/pudong/a1p21d2',#爬取拼接域名
+DistrictList=['pudong','minhang']
+SizeLevelList=['a'] #总共a1~a7
+PriceLevelList=['p2'] #总共p21~p27
 
-for i in range(1,100):#爬取2页，想爬多少页直接修改替换掉400，不要超过总页数就好
-    begin = time.time()
-    res=requests.get('http://sh.lianjia.com/ershoufang/d'+str(i),headers=headers1)#爬取拼接域名
-    soup = BeautifulSoup(res.text,'html.parser')#使用html筛选器
-     
-    price=soup.find_all('span',attrs={'class':'total-price strong-num'})
-    #price[0].string  # 323
-    priceper=soup.find_all('span',attrs={'class':'info-col price-item minor'})
-    #re.findall(r'\d{5}',priceper[0].string)  # ['66123']
-    houseInfo=soup.find_all('span',attrs={'class':'info-col row1-text'})
-    #houseInfo[0].get_text() #'\n\n\t\t\t\t\t\t\t1室1厅 | 40.53平\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t| 中区/5层\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t'
-    #text=re.sub(r'\n\t*| |','',houseInfo[0].get_text()) #'1室1厅|40.53平|中区/5层'
-    #re.split(r'\|', text) #['1室1厅', '40.53平', '中区/5层']
-    houseAddr=soup.find_all('span',attrs={'class':'info-col row2-text'})
-    #houseAddr2=houseAddr[0].find_all('a')
-    #houseAddr2[0].string #'虹延小区'
-    #houseAddr2[1].string #'长宁'
-    #houseAddr2[2].string #'西郊'
-    #re.findall(r'\d{4}',houseAddr[0].get_text()) # ['1995']
-    #time.sleep(random.randint(0, 10)/10)
-    j=0
-    for j in range(0,29):
-        try:
-            LinkUrl.append(soup.select('.prop-title a')[j]['href'])
-            TotalPrice.append(price[j].string)
-            # 323
-            UnitPrice=re.findall(r'\d{5}',priceper[j].string)
-            #['66123']
-            if UnitPrice:
-                PricePerArea.append(int(UnitPrice[0])) # '66123'
-            else:
-                PricePerArea.append('unknow') # '1995'
-            
-            HouseInfo1=re.split(r'\|',re.sub(r'\n\t*| |平','',houseInfo[j].get_text()))
-             #['1室1厅', '40.53平', '中区/5层']
-            HouseArea.append(float(HouseInfo1[1]))
-            HouseHeight.append(HouseInfo1[2])
-            HouseConfig.append(HouseInfo1[0])
-            
-            houseAddr2=houseAddr[j].find_all('a')
-            HouseCommunit.append(houseAddr2[0].string) #'虹延小区'
-            HouseLocMajor.append(houseAddr2[1].string) #'长宁'
-            HouseLocMinor.append(houseAddr2[2].string) #'西郊'
-               
-            BuildYear=re.findall(r'\d{4}',houseAddr[j].get_text())
-            if BuildYear:
-                HouseBuildYear.append(int(BuildYear[0])) # '1995'
-            else:
-                HouseBuildYear.append('unknow') # '1995'
-        except:
-           info=sys.exc_info()
-           print(info[0],":",info[1])
-    end = time.time()
-    sleeptime=random.randint(5, 10)/10
-    print(str(i),end - begin,sleeptime)       
-    time.sleep(sleeptime)
+for SizeLevel in range(1,7):
+    totalpage=100
+    i=1
+    for i in range(1,100):#爬取2页，想爬多少页直接修改替换掉400，不要超过总页数就好
+        if i>totalpage:
+            break
+        begin = time.time()
+        res=requests.get('http://sh.lianjia.com/ershoufang/'+DistrictList[0]+'/a'+str(SizeLevel)+'d'+str(i),headers=headers1)#爬取拼接域名
+        soup = BeautifulSoup(res.text,'html.parser')#使用html筛选器
+        if i==1:
+            results_totalpage=soup.find('a',attrs={'gahref':'results_totalpage'})
+            totalpage=int(results_totalpage.string)
+            print(totalpage,DistrictList[0]+'/a'+str(SizeLevel))
+        price=soup.find_all('span',attrs={'class':'total-price strong-num'})
+        #price[0].string  # 323
+        priceper=soup.find_all('span',attrs={'class':'info-col price-item minor'})
+        #re.findall(r'\d{5}',priceper[0].string)  # ['66123']
+        houseInfo=soup.find_all('span',attrs={'class':'info-col row1-text'})
+        #houseInfo[0].get_text() #'\n\n\t\t\t\t\t\t\t1室1厅 | 40.53平\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t| 中区/5层\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t'
+        #text=re.sub(r'\n\t*| |','',houseInfo[0].get_text()) #'1室1厅|40.53平|中区/5层'
+        #re.split(r'\|', text) #['1室1厅', '40.53平', '中区/5层']
+        houseAddr=soup.find_all('span',attrs={'class':'info-col row2-text'})
+        #houseAddr2=houseAddr[0].find_all('a')
+        #houseAddr2[0].string #'虹延小区'
+        #houseAddr2[1].string #'长宁'
+        #houseAddr2[2].string #'西郊'
+        #re.findall(r'\d{4}',houseAddr[0].get_text()) # ['1995']
+        #time.sleep(random.randint(0, 10)/10)
+        j=0
+        for j in range(0,(len(price))):  #并非所有页都是30项
+            try:
+                LinkUrl.append(soup.select('.prop-title a')[j]['href'])
+                TotalPrice.append(price[j].string)
+                # 323
+                UnitPrice=re.findall(r'\d{5}',priceper[j].string)
+                #['66123']
+                if UnitPrice:
+                    PricePerArea.append(int(UnitPrice[0])) # '66123'
+                else:
+                    PricePerArea.append('unknow') # '1995'
+                
+                HouseInfo1=re.split(r'\|',re.sub(r'\n\t*| |平','',houseInfo[j].get_text()))
+                 #['1室1厅', '40.53平', '中区/5层']
+                HouseArea.append(float(HouseInfo1[1]))
+                HouseHeight.append(HouseInfo1[2])
+                HouseConfig.append(HouseInfo1[0])
+                
+                houseAddr2=houseAddr[j].find_all('a')
+                HouseCommunit.append(houseAddr2[0].string) #'虹延小区'
+                HouseLocMajor.append(houseAddr2[1].string) #'长宁'
+                HouseLocMinor.append(houseAddr2[2].string) #'西郊'
+                   
+                BuildYear=re.findall(r'\d{4}',houseAddr[j].get_text())
+                if BuildYear:
+                    HouseBuildYear.append(int(BuildYear[0])) # '1995'
+                else:
+                    HouseBuildYear.append('unknow') # '1995'
+            except:
+               info=sys.exc_info()
+               print(info[0],":",info[1])
+        end = time.time()
+        sleeptime=random.randint(5, 10)/10
+        print(str(i),round(end - begin,2),sleeptime)       
+        time.sleep(sleeptime)
     
 df=pandas.DataFrame({'总价':TotalPrice,'单价':PricePerArea,'房型':HouseConfig,
                      '层':HouseHeight,'面积':HouseArea,'小区':HouseCommunit,
@@ -93,7 +102,7 @@ df=pandas.DataFrame({'总价':TotalPrice,'单价':PricePerArea,'房型':HouseCon
                      '网址':LinkUrl})
 
 datetimestr=time.strftime('%Y-%m-%d',time.localtime(time.time()))
-df.to_csv(datetimestr+'-LianJia.csv')
+df.to_csv(datetimestr+'-'+DistrictList[0]+'-LianJia.csv')
 #def gethousedetail1(url,soup,j):#定义函数，目标获得子域名里的房屋详细信息
 #    info={}#构造字典，作为之后的返回内容
 #    s=soup.select('.info-col a')[1+3*j]#通过传入的j获取所在区的内容
